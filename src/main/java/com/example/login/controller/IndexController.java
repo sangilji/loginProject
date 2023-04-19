@@ -13,29 +13,29 @@ public class IndexController {
         return "home";
     }
 
-    @GetMapping("/")
-    public String admin(){
-        return "home";
-    }
-
-    @GetMapping("/")
-    public String manager(){
-        return "home";
-    }
-
-    @GetMapping("/")
-    public String login(){
-        return "home";
-    }
-
-    @GetMapping("/")
-    public String join(){
-        return "home";
-    }
-
-    @GetMapping("/joinProcess")
-    public String joinProcess(){
-        return "redirect:home";
-    }
+//    @GetMapping("/")
+//    public String admin(){
+//        return "home";
+//    }
+//
+//    @GetMapping("/")
+//    public String manager(){
+//        return "home";
+//    }
+//
+//    @GetMapping("/")
+//    public String login(){
+//        return "home";
+//    }
+//
+//    @GetMapping("/")
+//    public String join(){
+//        return "home";
+//    }
+//
+//    @GetMapping("/joinProcess")
+//    public String joinProcess(){
+//        return "redirect:home";
+//    }
 
 }
