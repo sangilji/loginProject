@@ -1,17 +1,24 @@
 package com.example.login.controller;
 
+import com.example.login.auth.PrincipalDetails;
 import com.example.login.domain.LoginForm;
 import com.example.login.domain.Member;
 import com.example.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+
+import java.security.Principal;
 
 @Slf4j
 @Controller
@@ -21,9 +28,32 @@ public class IndexController {
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder encoder;
 
+    //    @GetMapping("/")
+    public String homeV1(Principal principal, Model model) {
+        if (principal == null) {
+            return "home";
+        }
+        model.addAttribute("name", principal.getName());
+        return "loginHome";
+    }
+
+    //    @GetMapping("/")
+    public String homeV2(Authentication authentication, Model model) {
+        if (authentication == null) {
+            return "home";
+        }
+        UserDetails principal = (UserDetails) authentication.getPrincipal();
+        model.addAttribute("name", principal.getUsername());
+        return "loginHome";
+    }
+
     @GetMapping("/")
-    public String index() {
-        return "home";
+    public String homeV3(@AuthenticationPrincipal PrincipalDetails principal, Model model) {
+        if (principal == null) {
+            return "home";
+        }
+        model.addAttribute("name", principal.getUsername());
+        return "loginHome";
     }
 
     @GetMapping("/admin")
