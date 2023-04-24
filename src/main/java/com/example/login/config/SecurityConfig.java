@@ -32,14 +32,14 @@ public class SecurityConfig{
         http.csrf().disable();
         http.authorizeRequests()
                 .antMatchers("/user/**").authenticated()
-                .antMatchers("/manger/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")
-                .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")
+                .antMatchers("/manger/**").access("hasRole('ADMIN') or hasRole('MANAGER')")
+                .antMatchers("/admin/**").access("hasRole('ADMIN')")
                 .anyRequest().permitAll()
                 .and()
                 .formLogin()
                 .loginPage("/loginForm")
                 .usernameParameter("loginId")
-                .loginProcessingUrl("/login")// loginProc 주소가 호출이 되면 시큐리티가 로그인 진행해줌
+                .loginProcessingUrl("/login")// login 주소가 호출이 되면 시큐리티가 로그인 진행해줌
                 .failureHandler(customFailureHandler)
                 .defaultSuccessUrl("/");
 
