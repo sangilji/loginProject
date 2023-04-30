@@ -1,5 +1,6 @@
 package com.example.login.service;
 
+import com.example.login.domain.JoinDto;
 import com.example.login.domain.Member;
 import com.example.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,17 +13,24 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder encoder;
 
-    public boolean save(Member member) {
+    public boolean save(JoinDto member) {
         if (duplicatedMember(member)) {
             return false;
         }
 
-        member.setPassword(encoder.encode(member.getPassword()));
-        memberRepository.save(member);
+        Member joinMember = Member.builder()
+                .userId(member.getUserId())
+                .email(member.getEmail())
+                .name(member.getName())
+                .password(encoder.encode(member.getPassword()))
+                .role(member.getRole())
+                .build();
+
+        memberRepository.save(joinMember);
         return true;
     }
 
-    private boolean duplicatedMember(Member member) {
+    private boolean duplicatedMember(JoinDto member) {
         if (existsUserId(member.getUserId())) {
             return true;
         }

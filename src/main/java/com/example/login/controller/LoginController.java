@@ -1,23 +1,24 @@
 package com.example.login.controller;
 
 import com.example.login.auth.PrincipalDetails;
+import com.example.login.domain.JoinDto;
 import com.example.login.domain.LoginForm;
 import com.example.login.domain.Member;
 import com.example.login.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -79,11 +80,12 @@ public class LoginController {
     }
 
     @PostMapping("/join")
-    public String join(@Valid @ModelAttribute("member") Member member, BindingResult bindingResult ) {
+    public String join(@Valid @ModelAttribute("member") JoinDto member, BindingResult bindingResult ) {
         if (bindingResult.hasErrors()) {
             return "joinForm";
         }
         member.setRole("ROLE_USER");
+
         boolean saveMember = memberService.save(member);
         if (!saveMember) {
             bindingResult.reject("duplicatedMessage","아이디 또는 이메일이 중복입니다.");
@@ -91,6 +93,18 @@ public class LoginController {
         }
 
         return "redirect:loginForm";
+    }
+    @Secured("ROLE_ADMIN")
+    @GetMapping("/info")
+    public @ResponseBody String info(){
+        return "개인정보";
+    }
+
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+//    @PostAuthorize()
+    @GetMapping("/data")
+    public @ResponseBody String data(){
+        return "여러개";
     }
 
 }
