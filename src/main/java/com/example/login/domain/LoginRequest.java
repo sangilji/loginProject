@@ -3,8 +3,8 @@ package com.example.login.domain;
 import lombok.Data;
 
 @Data
-public class LoginForm {
+public class LoginRequest {
 
-    private String loginId;
+    private String userId;
     private String password;
 }

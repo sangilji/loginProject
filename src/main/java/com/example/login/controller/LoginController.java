@@ -2,11 +2,13 @@ package com.example.login.controller;
 
 import com.example.login.auth.PrincipalDetails;
 import com.example.login.domain.JoinDto;
-import com.example.login.domain.LoginForm;
+import com.example.login.domain.LoginRequest;
 import com.example.login.domain.Member;
 import com.example.login.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -15,16 +17,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
 
 @Slf4j
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class LoginController {
 
@@ -60,39 +59,26 @@ public class LoginController {
     }
 
     @GetMapping("/admin")
-    public @ResponseBody String admin() {
+    public String admin() {
         return "admin";
     }
 
     @GetMapping("/manager")
     public String manager() {
-        return "home";
+        return "manager";
     }
 
-    @GetMapping("/loginForm")
-    public String login(@ModelAttribute("loginForm") LoginForm loginForm) {
-        return "loginForm";
-    }
 
-    @GetMapping("/joinForm")
-    public String joinForm(@ModelAttribute("member") Member member) {
-        return "/joinForm";
-    }
 
     @PostMapping("/join")
-    public String join(@Valid @ModelAttribute("member") JoinDto member, BindingResult bindingResult ) {
-        if (bindingResult.hasErrors()) {
-            return "joinForm";
-        }
-        member.setRole("ROLE_USER");
+    public ResponseEntity<?> join(@RequestBody JoinDto member ) {
 
         boolean saveMember = memberService.save(member);
         if (!saveMember) {
-            bindingResult.reject("duplicatedMessage","아이디 또는 이메일이 중복입니다.");
-            return "joinForm";
+            return new ResponseEntity<>("중복된 아이디, 이메일", HttpStatus.BAD_REQUEST);
         }
 
-        return "redirect:loginForm";
+        return new ResponseEntity<>("완료", HttpStatus.OK);
     }
     @Secured("ROLE_ADMIN")
     @GetMapping("/info")
