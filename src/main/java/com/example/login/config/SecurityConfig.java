@@ -1,18 +1,28 @@
 package com.example.login.config;
 
 import com.example.login.config.oauth.PrincipalOauth2UserService;
+import com.example.login.domain.CustomRoleHierarchyImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.vote.AffirmativeBased;
+import org.springframework.security.access.vote.RoleHierarchyVoter;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity // 스프링 시큐리티 필터가 스프링 필터체인에 등록 됨.
@@ -20,8 +30,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig {
-    private final CustomFailureHandler customFailureHandler;
-    private final PrincipalOauth2UserService principalOauth2UserService;
+    private final AuthenticationProvider provider;
 
     @Bean
     public BCryptPasswordEncoder encodedPwd() {
@@ -30,17 +39,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         AuthenticationManager authenticationManager = authenticationManager(http.getSharedObject(AuthenticationConfiguration.class));
+
         CustomUsernamePasswordAuthenticationFilter authenticationFilter = getAuthenticationFilter(authenticationManager);
-        http.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
 
         http.csrf().disable();
         http.authorizeRequests()
-                .antMatchers("/user/**").authenticated()
-                .antMatchers("/manger/**").access("hasRole('ADMIN') or hasRole('MANAGER')")
-                .antMatchers("/admin/**").access("hasRole('ADMIN')")
-                .anyRequest().permitAll()
+//                .antMatchers("/user/**").authenticated()
+//                .antMatchers("/manger/**").access("hasRole('ADMIN') or hasRole('MANAGER')")
+//                .antMatchers("/admin/**").access("hasRole('ADMIN')")
+                .anyRequest().authenticated()
                 .and()
                 .formLogin().disable()
                 .logout().logoutUrl("/logout")
@@ -74,15 +84,39 @@ public class SecurityConfig {
     }
 
 
-//    @Bean
-//    public UserDetailsService userDetailsService(){
-//        return username -> {
-//            Member member = memberRepository.findByUsername(username);
-//            if (member == null) {
-//                throw new UsernameNotFoundException(username);
-//            }
-//            return new PrincipalDetails(member);
-//        };
-//    }
+    @Bean
+    public CustomRoleHierarchyImpl roleHierarchy(){
+        CustomRoleHierarchyImpl roleHierarchy = new CustomRoleHierarchyImpl();
+        return roleHierarchy;
+    }
 
+    @Bean
+    public AccessDecisionVoter<? extends Object> roleVoter() {
+        RoleHierarchyVoter roleHierarchyVoter = new RoleHierarchyVoter(roleHierarchy());
+        return roleHierarchyVoter;
+    }
+
+    private List<AccessDecisionVoter<?>> getAccessDecisionVoters() {
+        List<AccessDecisionVoter<? extends Object>> accessDecisionVoters = new ArrayList<>();
+        accessDecisionVoters.add(roleVoter());
+        return accessDecisionVoters;
+    }
+
+    private AccessDecisionManager affirmativeBased() {
+        AffirmativeBased affirmativeBased = new AffirmativeBased(getAccessDecisionVoters());
+        return affirmativeBased;
+    }
+
+    @Bean
+    public FilterSecurityInterceptor customFilterSecurityInterceptor() throws Exception {
+        FilterSecurityInterceptor filterSecurityInterceptor = new FilterSecurityInterceptor();
+        filterSecurityInterceptor.setSecurityMetadataSource(urlFilterInvocationSecurityMetadataSource());
+        filterSecurityInterceptor.setAccessDecisionManager(affirmativeBased());
+        return filterSecurityInterceptor;
+    }
+
+    @Bean
+    public UrlFilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource(){
+        return new UrlFilterInvocationSecurityMetadataSource();
+    }
 }

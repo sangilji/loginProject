@@ -1,9 +1,8 @@
 package com.example.login.controller;
 
+import com.example.Status.*;
 import com.example.login.auth.PrincipalDetails;
 import com.example.login.domain.JoinDto;
-import com.example.login.domain.LoginRequest;
-import com.example.login.domain.Member;
 import com.example.login.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,12 +13,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.security.Principal;
 
 @Slf4j
@@ -40,22 +36,26 @@ public class LoginController {
     }
 
     //    @GetMapping("/")
-    public String homeV2(Authentication authentication, Model model) {
+    public ResponseEntity<?> homeV2(Authentication authentication, Model model) {
         if (authentication == null) {
-            return "home";
+            return ResponseEntity.ok()
+                    .body(JsonResponse.ok(true,ResponseMessage.NOT_INFORMATION.getMessage()));
         }
         UserDetails principal = (UserDetails) authentication.getPrincipal();
         model.addAttribute("name", principal.getUsername());
-        return "loginHome";
+        return ResponseEntity.ok()
+                .body(JsonResponse.ok(true,ResponseMessage.LOGIN_SUCCESS.getMessage(),principal));
+
     }
 
     @GetMapping("/")
-    public String homeV3(@AuthenticationPrincipal PrincipalDetails principal, Model model) {
+    public ResponseEntity<?> homeV3(@AuthenticationPrincipal PrincipalDetails principal) {
         if (principal == null) {
-            return "home";
+            return ResponseEntity.ok()
+                    .body(JsonResponse.ok(true,ResponseMessage.NOT_INFORMATION.getMessage()));
         }
-        model.addAttribute("name", principal.getUsername());
-        return "loginHome";
+        return ResponseEntity.ok()
+                .body(JsonResponse.ok(true,ResponseMessage.LOGIN_SUCCESS.getMessage(),principal));
     }
 
     @GetMapping("/admin")
@@ -75,22 +75,22 @@ public class LoginController {
 
         boolean saveMember = memberService.save(member);
         if (!saveMember) {
-            return new ResponseEntity<>("중복된 아이디, 이메일", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(JsonResponse.fail(false, ResponseMessage.LOGIN_FAIL.getMessage(), ErrorCode.E00.getErrorCode()), HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>("완료", HttpStatus.OK);
+        return new ResponseEntity<>(JsonResponse.ok(true,ResponseMessage.LOGIN_SUCCESS.getMessage(),member), HttpStatus.OK);
     }
-    @Secured("ROLE_ADMIN")
-    @GetMapping("/info")
-    public @ResponseBody String info(){
-        return "개인정보";
-    }
-
-    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
-//    @PostAuthorize()
-    @GetMapping("/data")
-    public @ResponseBody String data(){
-        return "여러개";
-    }
+//    @Secured("ROLE_ADMIN")
+//    @GetMapping("/info")
+//    public @ResponseBody String info(){
+//        return "개인정보";
+//    }
+//
+//    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+////    @PostAuthorize()
+//    @GetMapping("/data")
+//    public @ResponseBody String data(){
+//        return "여러개";
+//    }
 
 }
