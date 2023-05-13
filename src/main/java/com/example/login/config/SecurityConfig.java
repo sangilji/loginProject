@@ -2,6 +2,7 @@ package com.example.login.config;
 
 import com.example.login.config.oauth.PrincipalOauth2UserService;
 import com.example.login.domain.CustomRoleHierarchyImpl;
+import com.example.login.service.SecurityResourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +13,7 @@ import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleHierarchyVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.AbstractSecurityBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,7 +32,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig {
-    private final AuthenticationProvider provider;
+
+    private final SecurityResourceService securityResourceService;
 
     @Bean
     public BCryptPasswordEncoder encodedPwd() {
@@ -42,8 +45,11 @@ public class SecurityConfig {
         AuthenticationManager authenticationManager = authenticationManager(http.getSharedObject(AuthenticationConfiguration.class));
 
         CustomUsernamePasswordAuthenticationFilter authenticationFilter = getAuthenticationFilter(authenticationManager);
+        FilterSecurityInterceptor filterSecurityInterceptor = customFilterSecurityInterceptor();
+        filterSecurityInterceptor.setAuthenticationManager(authenticationManager);
+
         http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
+                .addFilterBefore(filterSecurityInterceptor, FilterSecurityInterceptor.class);
 
         http.csrf().disable();
         http.authorizeRequests()
@@ -116,7 +122,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UrlFilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource(){
-        return new UrlFilterInvocationSecurityMetadataSource();
+    public UrlFilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource() throws Exception{
+        return new UrlFilterInvocationSecurityMetadataSource(urlResourcesMapFactoryBean().getObject());
+    }
+
+    private UrlResourcesMapFactoryBean urlResourcesMapFactoryBean() {
+
+        UrlResourcesMapFactoryBean urlResourcesMapFactoryBean = new UrlResourcesMapFactoryBean();
+        urlResourcesMapFactoryBean.setSecurityResourceService(securityResourceService);
+
+        return urlResourcesMapFactoryBean;
     }
 }

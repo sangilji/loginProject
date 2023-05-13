@@ -1,22 +1,20 @@
 package com.example.login.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Member {
+@EqualsAndHashCode(of = "id")
+public class Member implements Serializable {
 
 
     @Id @GeneratedValue
@@ -39,6 +37,7 @@ public class Member {
     @NotNull
     private String role;
 
-    private String provider;
-    private String providerId;
+    @ManyToMany
+    @JoinTable(name = "member_roles", joinColumns = {@JoinColumn(name = "member_id")}, inverseJoinColumns = {@JoinColumn(name = "role_id")})
+    private Set<Role> Roles = new HashSet<>();
 }
