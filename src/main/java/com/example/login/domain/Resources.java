@@ -1,6 +1,8 @@
 package com.example.login.domain;
 
 import lombok.*;
+import net.minidev.json.annotate.JsonIgnore;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,10 +13,11 @@ import java.util.Set;
 @Table(name = "RESOURCES")
 @Data
 @ToString(exclude = {"roleSet"})
+@EntityListeners(value = { AuditingEntityListener.class })
 @EqualsAndHashCode(of = "id")
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Resources implements Serializable {
 
     @Id
@@ -34,6 +37,7 @@ public class Resources implements Serializable {
     @Column(name = "resource_type")
     private String resourceType;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "role_resources", joinColumns = {
             @JoinColumn(name = "resource_id") }, inverseJoinColumns = { @JoinColumn(name = "role_id") })

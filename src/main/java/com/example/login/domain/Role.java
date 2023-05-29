@@ -1,6 +1,7 @@
 package com.example.login.domain;
 
 import lombok.*;
+import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,11 +12,11 @@ import java.util.Set;
 @Entity
 @Table(name = "ROLE")
 @Data
-@ToString(exclude = {"members","resourcesSet"})
+@ToString(exclude = {"members","resourceSet"})
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-@Builder
 public class Role implements Serializable {
 
     @Id
@@ -29,6 +30,7 @@ public class Role implements Serializable {
     @Column(name = "role_desc")
     private String roleDesc;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "roleSet")
     @OrderBy("orderNum desc")
     private Set<Resources> resourcesSet = new LinkedHashSet<>();

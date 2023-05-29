@@ -1,6 +1,5 @@
 package com.example.login.config;
 
-import com.example.login.config.oauth.PrincipalOauth2UserService;
 import com.example.login.domain.CustomRoleHierarchyImpl;
 import com.example.login.service.SecurityResourceService;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +8,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleHierarchyVoter;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.AbstractSecurityBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -91,8 +89,8 @@ public class SecurityConfig {
 
 
     @Bean
-    public CustomRoleHierarchyImpl roleHierarchy(){
-        CustomRoleHierarchyImpl roleHierarchy = new CustomRoleHierarchyImpl();
+    public RoleHierarchyImpl roleHierarchy(){
+        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
         return roleHierarchy;
     }
 
@@ -123,7 +121,7 @@ public class SecurityConfig {
 
     @Bean
     public UrlFilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource() throws Exception{
-        return new UrlFilterInvocationSecurityMetadataSource(urlResourcesMapFactoryBean().getObject());
+        return new UrlFilterInvocationSecurityMetadataSource(urlResourcesMapFactoryBean().getObject(),securityResourceService);
     }
 
     private UrlResourcesMapFactoryBean urlResourcesMapFactoryBean() {
